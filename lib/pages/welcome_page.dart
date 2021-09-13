@@ -28,11 +28,12 @@ class _WelcomePageState extends State<WelcomePage> {
         toolbarHeight: 0,
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Theme.of(context).primaryColor, // Status bar
+          statusBarColor: Theme.of(context).primaryColor,
+          systemNavigationBarColor: Theme.of(context).primaryColor,
         ),
       ),
       body: SafeArea(
-        child: Column(
+        child: ListView(
           children: [
             const SizedBox(
               height: 25,
@@ -92,6 +93,9 @@ class _WelcomePageState extends State<WelcomePage> {
                   ),
                 ),
               ),
+            ),
+            const SizedBox(
+              height: 80,
             ),
           ],
         ),

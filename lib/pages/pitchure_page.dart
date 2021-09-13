@@ -25,7 +25,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
         toolbarHeight: 0,
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Theme.of(context).primaryColor, // Status bar
+          statusBarColor: Theme.of(context).primaryColor,
+          systemNavigationBarColor: Theme.of(context).primaryColor,
         ),
       ),
       body: SafeArea(
