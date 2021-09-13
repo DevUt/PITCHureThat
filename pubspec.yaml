@@ -37,6 +37,7 @@ dependencies:
 
   flutter_svg: ^0.22.0
   page_transition: ^2.0.2
+  flutter_app_name: ^0.1.1
 
 dev_dependencies:
   flutter_test:
@@ -93,3 +94,6 @@ flutter_icons:
   android: true
   ios: true
   image_path: "assets/images/Logo.png"
+
+flutter_app_name:
+  name: "PITCHureThat"
