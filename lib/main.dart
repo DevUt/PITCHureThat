@@ -4,8 +4,7 @@
  *
  ******************************************************************************/
 import "package:flutter/material.dart";
-
-import 'pages/welcome_page.dart';
+import "package:pitchure_that/pages/welcome_page.dart";
 
 void main() {
   runApp(const PITCHureThatApp());
@@ -22,6 +21,13 @@ class PITCHureThatApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: const Color(0xFFE61E3A),
         fontFamily: "HKGrotesk",
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          secondary: const Color(0xFFF9C9D0),
+          secondaryVariant: const Color(0xFF520F18),
+        ),
+        sliderTheme: ThemeData.dark().sliderTheme.copyWith(
+              valueIndicatorColor: const Color(0xFFE61E3A),
+            ),
       ),
       home: const WelcomePage(),
     );

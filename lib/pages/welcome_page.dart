@@ -6,8 +6,8 @@
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_svg/svg.dart";
-import 'package:page_transition/page_transition.dart';
-import 'package:pitchure_that/pages/pitchure_page.dart';
+import "package:page_transition/page_transition.dart";
+import "package:pitchure_that/pages/pitchure_page.dart";
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({Key? key}) : super(key: key);
@@ -19,10 +19,10 @@ class WelcomePage extends StatefulWidget {
 class _WelcomePageState extends State<WelcomePage> {
   @override
   Widget build(BuildContext context) {
-    var isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
+    bool _isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.white,
+      backgroundColor: _isDark ? Colors.black : Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         toolbarHeight: 0,
@@ -34,7 +34,7 @@ class _WelcomePageState extends State<WelcomePage> {
       ),
       body: SafeArea(
         child: ListView(
-          children: [
+          children: <Widget>[
             const SizedBox(
               height: 25,
             ),
@@ -75,7 +75,7 @@ class _WelcomePageState extends State<WelcomePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    PageTransition(
+                    PageTransition<PageTransitionType>(
                       curve: Curves.easeInOutBack,
                       type: PageTransitionType.rightToLeftJoined,
                       childCurrent: const WelcomePage(),
