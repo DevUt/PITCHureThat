@@ -14,7 +14,6 @@ import "package:rxdart/rxdart.dart";
 import "package:sliding_up_panel/sliding_up_panel.dart";
 
 // TODO: Speed Slider Animation
-// TODO: Song Name from Metadata
 // TODO: Equalizer with Animation
 // TODO: Pitch Graph
 // TODO: Functions with Animation
@@ -50,6 +49,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
 
   double _playerSpeed = 1;
 
+  String _musicTitle = "Loading...";
+
   Future<void> _setupMusic() async {
     try {
       _player = AudioPlayer();
@@ -62,7 +63,16 @@ class _PITCHurePageState extends State<PITCHurePage> {
         ),
       );
       await _player.setAsset("assets/music/music.mp3");
+      setState(() {
+        _musicTitle = "We Don't Talk Anymore";
+      });
       // await _player.setUrl("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
+      // await _player.setUrl("https://kissfm.ice.infomaniak.ch/kissfm-128.mp3");
+      // _player.icyMetadataStream.listen((IcyMetadata? event) {
+      //   setState(() {
+      //     _musicTitle = event?.info?.title ?? "Loading...";
+      //   });
+      // });
     } catch (e) {
       debugPrint("An error occurred $e");
       Navigator.pop(context);
@@ -97,103 +107,109 @@ class _PITCHurePageState extends State<PITCHurePage> {
         ),
       ),
       body: SafeArea(
-        child: SlidingUpPanel(
-          onPanelSlide: (double position) {
-            setState(() {
-              _isPanelOpen = position != 0;
-            });
-          },
-          minHeight: 80,
-          maxHeight: _panelMaxHeight,
-          panelBuilder: (ScrollController _panelScrollController) =>
-              _slideUpPanel(_panelScrollController),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: Colors.black.withOpacity(0.25),
-              blurRadius: 4,
-              spreadRadius: 0,
-              offset: const Offset(
-                -3,
-                -1,
-              ),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.25),
-              blurRadius: 7,
-              spreadRadius: -2,
-              offset: const Offset(
-                4,
-                -5,
-              ),
-            )
-          ],
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-            bottomLeft: Radius.zero,
-            bottomRight: Radius.zero,
-          ),
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          backdropEnabled: true,
-          body: ListView(
-            children: <Widget>[
-              const SizedBox(
-                height: 50,
-              ),
-              Center(
-                child: PhysicalModel(
-                  color: Theme.of(context).primaryColor,
-                  elevation: 10,
-                  borderRadius: BorderRadius.circular(30),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 20,
-                    ),
-                    width: 300,
-                    child: Row(
-                      children: <Widget>[
-                        SvgPicture.asset(
-                          "assets/images/MusicalNote.svg",
-                          semanticsLabel: "Musical Note",
+        child: Stack(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 80),
+              child: ListView(
+                children: <Widget>[
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  Center(
+                    child: PhysicalModel(
+                      color: Theme.of(context).primaryColor,
+                      elevation: 10,
+                      borderRadius: BorderRadius.circular(30),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 15,
                         ),
-                        const Expanded(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              "Amare - Electrona",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 24,
-                                color: Colors.white,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
+                        width: 300,
+                        child: Row(
+                          children: <Widget>[
+                            SvgPicture.asset(
+                              "assets/images/MusicalNote.svg",
+                              semanticsLabel: "Musical Note",
                             ),
-                          ),
+                            Expanded(
+                              child: Text(
+                                _musicTitle,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 24,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
+                  const SizedBox(
+                    height: 75,
+                  ),
+                  SvgPicture.asset(
+                    "assets/images/LineChart.svg",
+                    semanticsLabel: "Graph",
+                  ),
+                  const SizedBox(
+                    height: 100,
+                  ),
+                  _progressBar(),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  _playPauseButton(),
+                  const SizedBox(
+                    height: 50,
+                  ),
+                ],
+              ),
+            ),
+            SlidingUpPanel(
+              onPanelSlide: (double position) {
+                setState(() {
+                  _isPanelOpen = position != 0;
+                });
+              },
+              minHeight: 80,
+              maxHeight: _panelMaxHeight,
+              panelBuilder: (ScrollController _panelScrollController) =>
+                  _slideUpPanel(_panelScrollController),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 4,
+                  spreadRadius: 0,
+                  offset: const Offset(
+                    -3,
+                    -1,
+                  ),
                 ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 7,
+                  spreadRadius: -2,
+                  offset: const Offset(
+                    4,
+                    -5,
+                  ),
+                )
+              ],
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+                bottomLeft: Radius.zero,
+                bottomRight: Radius.zero,
               ),
-              const SizedBox(
-                height: 75,
-              ),
-              SvgPicture.asset(
-                "assets/images/LineChart.svg",
-                semanticsLabel: "Graph",
-              ),
-              const SizedBox(
-                height: 100,
-              ),
-              _progressBar(),
-              const SizedBox(
-                height: 15,
-              ),
-              _playPauseButton(),
-            ],
-          ),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              backdropEnabled: true,
+            )
+          ],
         ),
       ),
     );
