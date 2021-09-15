@@ -14,7 +14,6 @@ import "package:rxdart/rxdart.dart";
 import "package:sliding_up_panel/sliding_up_panel.dart";
 
 // TODO: Speed Slider Animation
-// TODO: Dynamic Slide Up Bar Height
 // TODO: Song Name from Metadata
 // TODO: Equalizer with Animation
 // TODO: Pitch Graph
@@ -46,6 +45,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
   bool _isSpeedExpanded = false;
   bool _isEqualizerExpanded = false;
   bool _isFunctionsExpanded = false;
+
+  double _panelMaxHeight = 250;
 
   double _playerSpeed = 1;
 
@@ -99,11 +100,13 @@ class _PITCHurePageState extends State<PITCHurePage> {
         child: SlidingUpPanel(
           onPanelSlide: (double position) {
             setState(() {
-              _isPanelOpen = position == 1;
+              _isPanelOpen = position != 0;
             });
           },
           minHeight: 80,
-          panel: _slideUpPanel(),
+          maxHeight: _panelMaxHeight,
+          panelBuilder: (ScrollController _panelScrollController) =>
+              _slideUpPanel(_panelScrollController),
           boxShadow: <BoxShadow>[
             BoxShadow(
               color: Colors.black.withOpacity(0.25),
@@ -196,161 +199,177 @@ class _PITCHurePageState extends State<PITCHurePage> {
     );
   }
 
-  Widget _slideUpPanel() {
-    return Column(
-      children: <Widget>[
-        const SizedBox(height: 15),
-        Column(
+  Widget _slideUpPanel(ScrollController _panelScrollController) {
+    return ListView.builder(
+      controller: _panelScrollController,
+      itemCount: 1,
+      itemBuilder: (BuildContext context, int i) {
+        return Column(
           children: <Widget>[
-            Center(
-              child: SvgPicture.asset(
-                _isPanelOpen ? "assets/images/DownArrow.svg" : "assets/images/UpArrow.svg",
-                semanticsLabel: _isPanelOpen ? "Close Panel" : "Open Panel",
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 50),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: AnimatedAlign(
-                alignment: _isSpeedExpanded ? Alignment.centerLeft : Alignment.center,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOutBack,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      primary: Colors.white,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isSpeedExpanded = !_isSpeedExpanded;
-                      });
-                    },
-                    child: const Text(
-                      "Speed",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
-                        color: Colors.black,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
+            const SizedBox(height: 15),
+            Column(
+              children: <Widget>[
+                Center(
+                  child: SvgPicture.asset(
+                    _isPanelOpen ? "assets/images/DownArrow.svg" : "assets/images/UpArrow.svg",
+                    semanticsLabel: _isPanelOpen ? "Close Panel" : "Open Panel",
                   ),
                 ),
-              ),
+              ],
             ),
-            if (_isSpeedExpanded)
-              Expanded(
-                flex: 2,
-                child: Slider(
-                  min: 0,
-                  max: 5,
-                  divisions: 20,
-                  thumbColor: Theme.of(context).primaryColor,
-                  activeColor: Theme.of(context).primaryColor,
-                  inactiveColor: Theme.of(context).colorScheme.secondary,
-                  label: _playerSpeed == 0 ? "0.01" : _playerSpeed.toStringAsPrecision(2),
-                  value: _playerSpeed,
-                  onChanged: (double newSpeed) {
-                    _player.setSpeed(newSpeed);
-                    setState(() {
-                      _playerSpeed = newSpeed;
-                    });
-                  },
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: AnimatedAlign(
-                alignment: _isEqualizerExpanded ? Alignment.centerLeft : Alignment.center,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOutBack,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      primary: Colors.white,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isEqualizerExpanded = !_isEqualizerExpanded;
-                      });
-                    },
-                    child: const Text(
-                      "Equalizer",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
-                        color: Colors.black,
+            if (_isPanelOpen) ...<Widget>[
+              const SizedBox(height: 15),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: AnimatedAlign(
+                      alignment: _isSpeedExpanded ? Alignment.centerLeft : Alignment.center,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOutBack,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            primary: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isSpeedExpanded = !_isSpeedExpanded;
+                            });
+                          },
+                          child: const Text(
+                            "Speed",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Colors.black,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        if (_isEqualizerExpanded)
-          Center(
-            child: SvgPicture.asset(
-              "assets/images/LineChart.svg",
-              semanticsLabel: "Equalizer",
-              height: 125,
-            ),
-          ),
-        const SizedBox(height: 10),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: AnimatedAlign(
-                alignment: _isFunctionsExpanded ? Alignment.centerLeft : Alignment.center,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOutBack,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: TextButton(
-                    style: TextButton.styleFrom(
-                      primary: Colors.white,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isFunctionsExpanded = !_isFunctionsExpanded;
-                      });
-                    },
-                    child: const Text(
-                      "Functions",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 30,
-                        color: Colors.black,
+                  if (_isSpeedExpanded)
+                    Expanded(
+                      flex: 2,
+                      child: Slider(
+                        min: 0,
+                        max: 5,
+                        divisions: 20,
+                        thumbColor: Theme.of(context).primaryColor,
+                        activeColor: Theme.of(context).primaryColor,
+                        inactiveColor: Theme.of(context).colorScheme.secondary,
+                        label: _playerSpeed == 0 ? "0.01" : _playerSpeed.toStringAsPrecision(2),
+                        value: _playerSpeed,
+                        onChanged: (double newSpeed) {
+                          _player.setSpeed(newSpeed);
+                          setState(() {
+                            _playerSpeed = newSpeed;
+                          });
+                        },
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: AnimatedAlign(
+                      alignment: _isEqualizerExpanded ? Alignment.centerLeft : Alignment.center,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOutBack,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            primary: Colors.white,
+                          ),
+                          onPressed: () {
+                            int _heightDifference = 125;
+                            setState(() {
+                              _isEqualizerExpanded
+                                  ? _panelMaxHeight -= _heightDifference
+                                  : _panelMaxHeight += _heightDifference;
+                              _isEqualizerExpanded = !_isEqualizerExpanded;
+                            });
+                          },
+                          child: const Text(
+                            "Equalizer",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Colors.black,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ),
+              if (_isEqualizerExpanded)
+                Center(
+                  child: SvgPicture.asset(
+                    "assets/images/LineChart.svg",
+                    semanticsLabel: "Equalizer",
+                    height: 125,
+                  ),
+                ),
+              const SizedBox(height: 10),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: AnimatedAlign(
+                      alignment: _isFunctionsExpanded ? Alignment.centerLeft : Alignment.center,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOutBack,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            primary: Colors.white,
+                          ),
+                          onPressed: () {
+                            int _heightDifference = 125;
+                            setState(() {
+                              _isFunctionsExpanded
+                                  ? _panelMaxHeight -= _heightDifference
+                                  : _panelMaxHeight += _heightDifference;
+                              _isFunctionsExpanded = !_isFunctionsExpanded;
+                            });
+                          },
+                          child: const Text(
+                            "Functions",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Colors.black,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_isFunctionsExpanded)
+                Center(
+                  child: SvgPicture.asset(
+                    "assets/images/LogoWithText.svg",
+                    semanticsLabel: "Equalizer",
+                  ),
+                ),
+            ]
           ],
-        ),
-        if (_isFunctionsExpanded)
-          Center(
-            child: SvgPicture.asset(
-              "assets/images/LogoWithText.svg",
-              semanticsLabel: "Equalizer",
-            ),
-          )
-      ],
+        );
+      },
     );
   }
 
