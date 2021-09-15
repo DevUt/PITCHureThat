@@ -14,11 +14,10 @@ import "package:rxdart/rxdart.dart";
 import "package:sliding_up_panel/sliding_up_panel.dart";
 
 // TODO: Speed Slider Animation
-// TODO: Play Icon at Center
-// TODO: Equalizer with Animation
 // TODO: Dynamic Slide Up Bar Height
-// TODO: Pitch Graph
 // TODO: Song Name from Metadata
+// TODO: Equalizer with Animation
+// TODO: Pitch Graph
 // TODO: Functions with Animation
 // TODO: Use file picker for music selection
 
@@ -406,7 +405,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
                   ),
                 ),
                 elevation: 5,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(3),
                 alignment: Alignment.center,
               ),
               onPressed: () {
