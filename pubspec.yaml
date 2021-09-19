@@ -45,6 +45,7 @@ dependencies:
   sliding_up_panel: ^2.0.0+1
   equalizer:
     git: https://github.com/PITCHureThat/equalizer.git
+  file_picker: ^4.0.3
 
 dev_dependencies:
   flutter_test:
@@ -80,7 +81,6 @@ flutter:
     - assets/images/UpArrow.svg
     - assets/images/DownArrow.svg
     - assets/images/Banner.png
-    - assets/music/music.mp3
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -7,6 +7,7 @@ import "dart:math";
 
 import "package:audio_video_progress_bar/audio_video_progress_bar.dart";
 import "package:equalizer/equalizer.dart";
+import "package:file_picker/file_picker.dart";
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 import "package:flutter/painting.dart";
@@ -22,7 +23,6 @@ import "package:sliding_up_panel/sliding_up_panel.dart";
 // TODO: Equalizer Animation
 // TODO: Pitch Graph
 // TODO: Functions with Animation
-// TODO: Use file picker for music selection
 
 class DurationState {
   DurationState({
@@ -35,7 +35,9 @@ class DurationState {
 }
 
 class PITCHurePage extends StatefulWidget {
-  const PITCHurePage({Key? key}) : super(key: key);
+  const PITCHurePage(this.filePickerResult, {Key? key}) : super(key: key);
+
+  final PlatformFile? filePickerResult;
 
   @override
   State<PITCHurePage> createState() => _PITCHurePageState();
@@ -64,6 +66,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
   Future<void> _setupMusic() async {
     try {
       _player = AudioPlayer();
+
       _durationState = Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
         _player.positionStream,
         _player.playbackEventStream,
@@ -72,10 +75,18 @@ class _PITCHurePageState extends State<PITCHurePage> {
           total: playbackEvent.duration,
         ),
       );
-      await _player.setAsset("assets/music/music.mp3");
-      setState(() {
-        _musicTitle = "We Don't Talk Anymore";
-      });
+
+      PlatformFile? musicFile = widget.filePickerResult;
+      if (musicFile != null) {
+        await _player.setFilePath(musicFile.path!);
+
+        setState(() {
+          _musicTitle = _player.icyMetadata?.info?.title ?? musicFile.name;
+        });
+      } else {
+        Navigator.pop(context);
+      }
+
       _player.androidAudioSessionIdStream.first.then((int? _playerAudioSessionId) {
         if (_playerAudioSessionId != null) {
           Equalizer.init(_playerAudioSessionId);
@@ -105,13 +116,6 @@ class _PITCHurePageState extends State<PITCHurePage> {
           });
         }
       });
-      // await _player.setUrl("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
-      // await _player.setUrl("https://kissfm.ice.infomaniak.ch/kissfm-128.mp3");
-      // _player.icyMetadataStream.listen((IcyMetadata? event) {
-      //   setState(() {
-      //     _musicTitle = event?.info?.title ?? "Loading...";
-      //   });
-      // });
     } catch (e) {
       debugPrint("An error occurred $e");
       Navigator.pop(context);
@@ -174,14 +178,17 @@ class _PITCHurePageState extends State<PITCHurePage> {
                               semanticsLabel: "Musical Note",
                             ),
                             Expanded(
-                              child: Text(
-                                _musicTitle,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 24,
-                                  color: Colors.white,
+                              child: Transform(
+                                transform: Matrix4.translationValues(-7, 0, 0),
+                                child: Text(
+                                  _musicTitle,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 24,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
                             ),
                           ],

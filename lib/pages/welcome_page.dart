@@ -3,6 +3,7 @@
  * All Rights Reserved.
  *
  ******************************************************************************/
+import "package:file_picker/file_picker.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_svg/svg.dart";
@@ -17,6 +18,8 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
+  bool _isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     bool _isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
@@ -73,19 +76,35 @@ class _WelcomePageState extends State<WelcomePage> {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    PageTransition<PageTransitionType>(
-                      curve: Curves.easeInOutBack,
-                      type: PageTransitionType.rightToLeftJoined,
-                      childCurrent: const WelcomePage(),
-                      child: const PITCHurePage(),
-                    ),
-                  );
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  FilePicker.platform.pickFiles(allowMultiple: false, type: FileType.audio).then(
+                    (FilePickerResult? value) async {
+                      if (value != null) {
+                        await Navigator.push(
+                          context,
+                          PageTransition<PageTransitionType>(
+                            curve: Curves.easeInOutBack,
+                            type: PageTransitionType.rightToLeftJoined,
+                            childCurrent: const WelcomePage(),
+                            child: PITCHurePage(value.files.first),
+                          ),
+                        );
+                      }
+                    },
+                    onError: (dynamic error) {
+                      debugPrint(error.toString());
+                    },
+                  ).whenComplete(() {
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  });
                 },
-                child: const Text(
-                  "Select Music",
-                  style: TextStyle(
+                child: Text(
+                  _isLoading ? "Loading..." : "Select Music",
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                     letterSpacing: 1.25,
