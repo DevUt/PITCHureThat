@@ -43,6 +43,8 @@ dependencies:
   rxdart: ^0.27.2
   lint: ^1.7.2
   sliding_up_panel: ^2.0.0+1
+  equalizer:
+    git: https://github.com/PITCHureThat/equalizer.git
 
 dev_dependencies:
   flutter_test:

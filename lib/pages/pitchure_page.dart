@@ -3,18 +3,23 @@
  * All Rights Reserved.
  *
  ******************************************************************************/
+import "dart:math";
+
 import "package:audio_video_progress_bar/audio_video_progress_bar.dart";
+import "package:equalizer/equalizer.dart";
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
+import "package:flutter/painting.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
+import "package:flutter/widgets.dart";
 import "package:flutter_svg/svg.dart";
 import "package:just_audio/just_audio.dart";
 import "package:rxdart/rxdart.dart";
 import "package:sliding_up_panel/sliding_up_panel.dart";
 
 // TODO: Speed Slider Animation
-// TODO: Equalizer with Animation
+// TODO: Equalizer Animation
 // TODO: Pitch Graph
 // TODO: Functions with Animation
 // TODO: Use file picker for music selection
@@ -51,6 +56,11 @@ class _PITCHurePageState extends State<PITCHurePage> {
 
   String _musicTitle = "Loading...";
 
+  int _eqBandLevelMin = -15;
+  int _eqBandLevelMax = 15;
+  final List<int> _eqBandFreqs = <int>[];
+  final List<int> _eqBandLevels = <int>[];
+
   Future<void> _setupMusic() async {
     try {
       _player = AudioPlayer();
@@ -65,6 +75,35 @@ class _PITCHurePageState extends State<PITCHurePage> {
       await _player.setAsset("assets/music/music.mp3");
       setState(() {
         _musicTitle = "We Don't Talk Anymore";
+      });
+      _player.androidAudioSessionIdStream.first.then((int? _playerAudioSessionId) {
+        if (_playerAudioSessionId != null) {
+          Equalizer.init(_playerAudioSessionId);
+          Equalizer.setEnabled(true);
+          Equalizer.getBandLevelRange().then((List<int> value) {
+            setState(() {
+              _eqBandLevelMin = value[0];
+              _eqBandLevelMax = value[1];
+            });
+          });
+          Equalizer.getCenterBandFreqs().then((List<int> value) {
+            while (value.length > 6) {
+              value.removeLast();
+            }
+            _eqBandFreqs.addAll(value);
+            for (int levelIdx = 0; levelIdx < value.length; levelIdx++) {
+              Equalizer.getBandLevel(levelIdx).then((int level) {
+                _eqBandLevels.add(level);
+              });
+            }
+            while (_eqBandFreqs.length > 6) {
+              _eqBandFreqs.removeLast();
+            }
+            while (_eqBandLevels.length > 6) {
+              _eqBandLevels.removeLast();
+            }
+          });
+        }
       });
       // await _player.setUrl("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3");
       // await _player.setUrl("https://kissfm.ice.infomaniak.ch/kissfm-128.mp3");
@@ -87,6 +126,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
 
   @override
   void dispose() {
+    Equalizer.release();
     _player.dispose();
     super.dispose();
   }
@@ -304,7 +344,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
                             primary: Colors.white,
                           ),
                           onPressed: () {
-                            int _heightDifference = 125;
+                            int _heightDifference = 235;
                             setState(() {
                               _isEqualizerExpanded
                                   ? _panelMaxHeight -= _heightDifference
@@ -328,14 +368,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
                   ),
                 ],
               ),
-              if (_isEqualizerExpanded)
-                Center(
-                  child: SvgPicture.asset(
-                    "assets/images/LineChart.svg",
-                    semanticsLabel: "Equalizer",
-                    height: 125,
-                  ),
-                ),
+              if (_isEqualizerExpanded) _equalizer(),
               const SizedBox(height: 10),
               Row(
                 children: <Widget>[
@@ -484,6 +517,76 @@ class _PITCHurePageState extends State<PITCHurePage> {
           );
         }
       },
+    );
+  }
+
+  Widget _equalizer() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: const Color(0xFFE8E8E8),
+            width: 2,
+          ),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(20),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            for (int i = 0; i < _eqBandFreqs.length; i++)
+              RotatedBox(
+                quarterTurns: 3,
+                child: Row(
+                  children: <Widget>[
+                    Transform(
+                      transform: Matrix4.rotationZ(pi / 4),
+                      alignment: Alignment.center,
+                      origin: const Offset(5, 25),
+                      child: Text(
+                        (_eqBandFreqs[i] ~/ 1e3 > 1e3
+                                ? ((_eqBandFreqs[i] ~/ 1e6).toString() + " k")
+                                : ((_eqBandFreqs[i] ~/ 1e3).toString() + " ")) +
+                            "Hz",
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 15,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 8.48,
+                          elevation: 0,
+                        ),
+                      ),
+                      child: Slider(
+                        min: _eqBandLevelMin.toDouble(),
+                        max: _eqBandLevelMax.toDouble(),
+                        divisions: _eqBandLevelMax - _eqBandLevelMin,
+                        thumbColor: Theme.of(context).primaryColor,
+                        activeColor: Theme.of(context).primaryColor,
+                        inactiveColor: Theme.of(context).colorScheme.secondary,
+                        label: _eqBandLevels[i].toString(),
+                        value: _eqBandLevels[i].toDouble(),
+                        onChanged: (double newLevel) {
+                          Equalizer.setBandLevel(i, newLevel.round());
+                          _eqBandLevels[i] = newLevel.round();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
