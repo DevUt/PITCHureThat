@@ -16,6 +16,7 @@ import "package:flutter/services.dart";
 import "package:flutter/widgets.dart";
 import "package:flutter_svg/svg.dart";
 import "package:just_audio/just_audio.dart";
+import "package:marquee_text/marquee_text.dart";
 import "package:rxdart/rxdart.dart";
 import "package:sliding_up_panel/sliding_up_panel.dart";
 
@@ -63,6 +64,11 @@ class _PITCHurePageState extends State<PITCHurePage> {
   final List<int> _eqBandFreqs = <int>[];
   final List<int> _eqBandLevels = <int>[];
 
+  int _secondsInMusic = 0;
+  final List<List<double>> _pitches = <List<double>>[
+    <double>[0, 1]
+  ];
+
   Future<void> _setupMusic() async {
     try {
       _player = AudioPlayer();
@@ -82,7 +88,12 @@ class _PITCHurePageState extends State<PITCHurePage> {
 
         setState(() {
           _musicTitle = _player.icyMetadata?.info?.title ?? musicFile.name;
+          _secondsInMusic = _player.playbackEvent.duration?.inSeconds ?? 0;
         });
+
+        for (int i = 1; i < _secondsInMusic; i++) {
+          _pitches.add(<double>[i.toDouble(), 1]);
+        }
       } else {
         Navigator.pop(context);
       }
@@ -155,7 +166,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.only(bottom: 80),
-              child: ListView(
+              child: Column(
                 children: <Widget>[
                   const SizedBox(
                     height: 50,
@@ -179,15 +190,17 @@ class _PITCHurePageState extends State<PITCHurePage> {
                             ),
                             Expanded(
                               child: Transform(
-                                transform: Matrix4.translationValues(-7, 0, 0),
-                                child: Text(
-                                  _musicTitle,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 24,
-                                    color: Colors.white,
+                                transform: Matrix4.translationValues(-5, 0, 0),
+                                child: Center(
+                                  child: MarqueeText(
+                                    text: _musicTitle,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 24,
+                                      color: Colors.white,
+                                    ),
+                                    speed: 15,
                                   ),
-                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ),
@@ -438,6 +451,9 @@ class _PITCHurePageState extends State<PITCHurePage> {
         final DurationState? _durationState = snapshot.data;
         final Duration _progress = _durationState?.progress ?? Duration.zero;
         final Duration _total = _durationState?.total ?? Duration.zero;
+
+        _player.setPitch(_pitches[_progress.inSeconds][1]);
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25),
           child: ProgressBar(

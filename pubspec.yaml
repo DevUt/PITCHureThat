@@ -46,6 +46,7 @@ dependencies:
   equalizer:
     git: https://github.com/PITCHureThat/equalizer.git
   file_picker: ^4.0.3
+  marquee_text: ^2.0.0
 
 dev_dependencies:
   flutter_test:
