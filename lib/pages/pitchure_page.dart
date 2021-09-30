@@ -19,11 +19,14 @@ import "package:just_audio/just_audio.dart";
 import "package:marquee_text/marquee_text.dart";
 import "package:rxdart/rxdart.dart";
 import "package:sliding_up_panel/sliding_up_panel.dart";
+import "package:syncfusion_flutter_charts/charts.dart";
 
-// TODO: Speed Slider Animation
-// TODO: Equalizer Animation
-// TODO: Pitch Graph
-// TODO: Functions with Animation
+// TODO: 3 remaining functions
+// TODO: Fix flac null error bug
+// TODO: Wavelength and Wave amplitude Slider, Store in State and update live
+// TODO: Do not play in background
+// TODO: Pitch Graph with start and end points to select region and slider knob to change pitch of that particular region
+// TODO: Save Button to Save music to Storage
 
 class DurationState {
   DurationState({
@@ -50,12 +53,14 @@ class _PITCHurePageState extends State<PITCHurePage> {
 
   bool _isPanelOpen = false;
   bool _isSpeedExpanded = false;
+  bool _isPitchExpanded = false;
   bool _isEqualizerExpanded = false;
   bool _isFunctionsExpanded = false;
 
-  double _panelMaxHeight = 250;
+  double _panelMaxHeight = 310;
 
   double _playerSpeed = 1;
+  double _playerPitch = 0;
 
   String _musicTitle = "Loading...";
 
@@ -84,14 +89,14 @@ class _PITCHurePageState extends State<PITCHurePage> {
 
       PlatformFile? musicFile = widget.filePickerResult;
       if (musicFile != null) {
-        await _player.setFilePath(musicFile.path!);
+        await _player.setFilePath(musicFile.path!, preload: true);
 
         setState(() {
           _musicTitle = _player.icyMetadata?.info?.title ?? musicFile.name;
           _secondsInMusic = _player.playbackEvent.duration?.inSeconds ?? 0;
         });
 
-        for (int i = 1; i < _secondsInMusic; i++) {
+        for (int i = 1; i <= _secondsInMusic; i++) {
           _pitches.add(<double>[i.toDouble(), 1]);
         }
       } else {
@@ -166,7 +171,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.only(bottom: 80),
-              child: Column(
+              child: ListView(
                 children: <Widget>[
                   const SizedBox(
                     height: 50,
@@ -210,14 +215,27 @@ class _PITCHurePageState extends State<PITCHurePage> {
                     ),
                   ),
                   const SizedBox(
-                    height: 75,
+                    height: 50,
                   ),
-                  SvgPicture.asset(
-                    "assets/images/LineChart.svg",
-                    semanticsLabel: "Graph",
+                  SfCartesianChart(
+                    primaryXAxis: NumericAxis(),
+                    primaryYAxis: NumericAxis(
+                      minimum: -12,
+                      maximum: 12,
+                      interval: 6,
+                    ),
+                    series: <SplineSeries<List<double>, double>>[
+                      SplineSeries<List<double>, double>(
+                        dataSource: _pitches,
+                        xValueMapper: (List<double> pitch, _) => pitch[0],
+                        yValueMapper: (List<double> pitch, _) =>
+                            (pitch[1] / 0.0416666667) + _playerPitch - 24,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ],
                   ),
                   const SizedBox(
-                    height: 100,
+                    height: 50,
                   ),
                   _progressBar(),
                   const SizedBox(
@@ -272,6 +290,46 @@ class _PITCHurePageState extends State<PITCHurePage> {
           ],
         ),
       ),
+    );
+  }
+
+  StreamBuilder<DurationState> _progressBar() {
+    bool _isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
+
+    return StreamBuilder<DurationState>(
+      stream: _durationState,
+      builder: (BuildContext context, AsyncSnapshot<DurationState> snapshot) {
+        final DurationState? _durationState = snapshot.data;
+        final Duration _progress = _durationState?.progress ?? Duration.zero;
+        final Duration _total = _durationState?.total ?? Duration.zero;
+
+        _player.setPitch((_pitches[_progress.inSeconds][1] + _playerPitch + 23) * 0.0416666667);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25),
+          child: ProgressBar(
+            progress: _progress,
+            total: _total,
+            onSeek: (Duration duration) {
+              _player.seek(duration);
+            },
+            progressBarColor: Theme.of(context).primaryColor,
+            baseBarColor: _isDark
+                ? Theme.of(context).colorScheme.secondaryVariant
+                : Theme.of(context).colorScheme.secondary,
+            thumbColor: Theme.of(context).primaryColor,
+            barHeight: 3,
+            thumbRadius: 6,
+            timeLabelPadding: 5,
+            timeLabelTextStyle: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: Theme.of(context).primaryColor,
+            ),
+            thumbCanPaintOutsideBar: true,
+          ),
+        );
+      },
     );
   }
 
@@ -354,6 +412,60 @@ class _PITCHurePageState extends State<PITCHurePage> {
                 children: <Widget>[
                   Expanded(
                     child: AnimatedAlign(
+                      alignment: _isPitchExpanded ? Alignment.centerLeft : Alignment.center,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOutBack,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            primary: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPitchExpanded = !_isPitchExpanded;
+                            });
+                          },
+                          child: const Text(
+                            "Pitch",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Colors.black,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_isPitchExpanded)
+                    Expanded(
+                      flex: 2,
+                      child: Slider(
+                        min: -12,
+                        max: 12,
+                        divisions: 24,
+                        thumbColor: Theme.of(context).primaryColor,
+                        activeColor: Theme.of(context).primaryColor,
+                        inactiveColor: Theme.of(context).colorScheme.secondary,
+                        label: (_playerPitch).round().toString(),
+                        value: _playerPitch,
+                        onChanged: (double newPitch) {
+                          setState(() {
+                            _playerPitch = newPitch;
+                          });
+                        },
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: AnimatedAlign(
                       alignment: _isEqualizerExpanded ? Alignment.centerLeft : Alignment.center,
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOutBack,
@@ -404,7 +516,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
                             primary: Colors.white,
                           ),
                           onPressed: () {
-                            int _heightDifference = 125;
+                            int _heightDifference = 130;
                             setState(() {
                               _isFunctionsExpanded
                                   ? _panelMaxHeight -= _heightDifference
@@ -426,57 +538,69 @@ class _PITCHurePageState extends State<PITCHurePage> {
                       ),
                     ),
                   ),
+                  if (_isFunctionsExpanded)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: _functionButton("Reset", () {
+                        for (int i = 0; i < _pitches.length; i++) {
+                          _pitches[i][1] = 1;
+                        }
+                      }),
+                    ),
                 ],
               ),
+              const SizedBox(height: 15),
               if (_isFunctionsExpanded)
-                Center(
-                  child: SvgPicture.asset(
-                    "assets/images/LogoWithText.svg",
-                    semanticsLabel: "Equalizer",
-                  ),
-                ),
+                Column(
+                  children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        _functionButton("Sine", () {
+                          for (int i = 0; i < _pitches.length; i++) {
+                            double _amplitude = 0.4;
+                            double _wavelength = 1;
+                            double _sine = _amplitude * sin(i / (2 * pi * _wavelength));
+                            _pitches[i][1] = _sine + 1;
+                          }
+                        }),
+                        const SizedBox(width: 30),
+                        _functionButton("Cosine", () {
+                          for (int i = 0; i < _pitches.length; i++) {
+                            double _amplitude = 0.4;
+                            double _wavelength = 1;
+                            double _cosine = _amplitude * cos(i / (2 * pi * _wavelength));
+                            _pitches[i][1] = _cosine + 1;
+                          }
+                        }),
+                        const SizedBox(width: 30),
+                        _functionButton("Tangent", () {
+                          for (int i = 0; i < _pitches.length; i++) {
+                            double _amplitude = 0.4;
+                            double _wavelength = 3;
+                            double _tangent = _amplitude * tan(i / (2 * pi * _wavelength));
+                            _pitches[i][1] = _tangent + 1;
+                          }
+                        }),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        _functionButton("Sawtooth", () {}),
+                        const SizedBox(width: 30),
+                        _functionButton("Exponential", () {}),
+                        const SizedBox(width: 30),
+                        _functionButton("Step", () {}),
+                      ],
+                    ),
+                  ],
+                )
             ]
           ],
-        );
-      },
-    );
-  }
-
-  StreamBuilder<DurationState> _progressBar() {
-    bool _isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
-
-    return StreamBuilder<DurationState>(
-      stream: _durationState,
-      builder: (BuildContext context, AsyncSnapshot<DurationState> snapshot) {
-        final DurationState? _durationState = snapshot.data;
-        final Duration _progress = _durationState?.progress ?? Duration.zero;
-        final Duration _total = _durationState?.total ?? Duration.zero;
-
-        _player.setPitch(_pitches[_progress.inSeconds][1]);
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: ProgressBar(
-            progress: _progress,
-            total: _total,
-            onSeek: (Duration duration) {
-              _player.seek(duration);
-            },
-            progressBarColor: Theme.of(context).primaryColor,
-            baseBarColor: _isDark
-                ? Theme.of(context).colorScheme.secondaryVariant
-                : Theme.of(context).colorScheme.secondary,
-            thumbColor: Theme.of(context).primaryColor,
-            barHeight: 3,
-            thumbRadius: 6,
-            timeLabelPadding: 5,
-            timeLabelTextStyle: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-              color: Theme.of(context).primaryColor,
-            ),
-            thumbCanPaintOutsideBar: true,
-          ),
         );
       },
     );
@@ -608,6 +732,29 @@ class _PITCHurePageState extends State<PITCHurePage> {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _functionButton(String _buttonText, void Function() _buttonPressedFn) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        primary: Theme.of(context).primaryColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        elevation: 1,
+        padding: const EdgeInsets.all(10),
+      ),
+      onPressed: _buttonPressedFn,
+      child: Text(
+        _buttonText,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          letterSpacing: 1.25,
+          color: Colors.white,
         ),
       ),
     );
