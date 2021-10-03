@@ -78,7 +78,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
     try {
       _player = AudioPlayer();
 
-      _durationState = Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
+      _durationState =
+          Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
         _player.positionStream,
         _player.playbackEventStream,
         (Duration position, PlaybackEvent playbackEvent) => DurationState(
@@ -103,7 +104,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
         Navigator.pop(context);
       }
 
-      _player.androidAudioSessionIdStream.first.then((int? _playerAudioSessionId) {
+      _player.androidAudioSessionIdStream.first
+          .then((int? _playerAudioSessionId) {
         if (_playerAudioSessionId != null) {
           Equalizer.init(_playerAudioSessionId);
           Equalizer.setEnabled(true);
@@ -303,7 +305,9 @@ class _PITCHurePageState extends State<PITCHurePage> {
         final Duration _progress = _durationState?.progress ?? Duration.zero;
         final Duration _total = _durationState?.total ?? Duration.zero;
 
-        _player.setPitch((_pitches[_progress.inSeconds][1] + _playerPitch + 23) * 0.0416666667);
+        _player.setPitch(
+          (_pitches[_progress.inSeconds][1] + _playerPitch + 23) * 0.0416666667,
+        );
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 25),
@@ -345,7 +349,9 @@ class _PITCHurePageState extends State<PITCHurePage> {
               children: <Widget>[
                 Center(
                   child: SvgPicture.asset(
-                    _isPanelOpen ? "assets/images/DownArrow.svg" : "assets/images/UpArrow.svg",
+                    _isPanelOpen
+                        ? "assets/images/DownArrow.svg"
+                        : "assets/images/UpArrow.svg",
                     semanticsLabel: _isPanelOpen ? "Close Panel" : "Open Panel",
                   ),
                 ),
@@ -357,7 +363,9 @@ class _PITCHurePageState extends State<PITCHurePage> {
                 children: <Widget>[
                   Expanded(
                     child: AnimatedAlign(
-                      alignment: _isSpeedExpanded ? Alignment.centerLeft : Alignment.center,
+                      alignment: _isSpeedExpanded
+                          ? Alignment.centerLeft
+                          : Alignment.center,
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOutBack,
                       child: Padding(
@@ -395,7 +403,9 @@ class _PITCHurePageState extends State<PITCHurePage> {
                         thumbColor: Theme.of(context).primaryColor,
                         activeColor: Theme.of(context).primaryColor,
                         inactiveColor: Theme.of(context).colorScheme.secondary,
-                        label: _playerSpeed == 0 ? "0.01" : _playerSpeed.toStringAsPrecision(2),
+                        label: _playerSpeed == 0
+                            ? "0.01"
+                            : _playerSpeed.toStringAsPrecision(2),
                         value: _playerSpeed,
                         onChanged: (double newSpeed) {
                           _player.setSpeed(newSpeed);
@@ -412,7 +422,9 @@ class _PITCHurePageState extends State<PITCHurePage> {
                 children: <Widget>[
                   Expanded(
                     child: AnimatedAlign(
-                      alignment: _isPitchExpanded ? Alignment.centerLeft : Alignment.center,
+                      alignment: _isPitchExpanded
+                          ? Alignment.centerLeft
+                          : Alignment.center,
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOutBack,
                       child: Padding(
@@ -466,7 +478,9 @@ class _PITCHurePageState extends State<PITCHurePage> {
                 children: <Widget>[
                   Expanded(
                     child: AnimatedAlign(
-                      alignment: _isEqualizerExpanded ? Alignment.centerLeft : Alignment.center,
+                      alignment: _isEqualizerExpanded
+                          ? Alignment.centerLeft
+                          : Alignment.center,
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOutBack,
                       child: Padding(
@@ -506,7 +520,9 @@ class _PITCHurePageState extends State<PITCHurePage> {
                 children: <Widget>[
                   Expanded(
                     child: AnimatedAlign(
-                      alignment: _isFunctionsExpanded ? Alignment.centerLeft : Alignment.center,
+                      alignment: _isFunctionsExpanded
+                          ? Alignment.centerLeft
+                          : Alignment.center,
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOutBack,
                       child: Padding(
@@ -561,7 +577,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
                           for (int i = 0; i < _pitches.length; i++) {
                             double _amplitude = 0.4;
                             double _wavelength = 1;
-                            double _sine = _amplitude * sin(i / (2 * pi * _wavelength));
+                            double _sine =
+                                _amplitude * sin(i / (2 * pi * _wavelength));
                             _pitches[i][1] = _sine + 1;
                           }
                         }),
@@ -570,7 +587,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
                           for (int i = 0; i < _pitches.length; i++) {
                             double _amplitude = 0.4;
                             double _wavelength = 1;
-                            double _cosine = _amplitude * cos(i / (2 * pi * _wavelength));
+                            double _cosine =
+                                _amplitude * cos(i / (2 * pi * _wavelength));
                             _pitches[i][1] = _cosine + 1;
                           }
                         }),
@@ -579,7 +597,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
                           for (int i = 0; i < _pitches.length; i++) {
                             double _amplitude = 0.4;
                             double _wavelength = 3;
-                            double _tangent = _amplitude * tan(i / (2 * pi * _wavelength));
+                            double _tangent =
+                                _amplitude * tan(i / (2 * pi * _wavelength));
                             _pitches[i][1] = _tangent + 1;
                           }
                         }),

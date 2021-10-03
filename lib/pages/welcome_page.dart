@@ -79,7 +79,9 @@ class _WelcomePageState extends State<WelcomePage> {
                   setState(() {
                     _isLoading = true;
                   });
-                  FilePicker.platform.pickFiles(allowMultiple: false, type: FileType.audio).then(
+                  FilePicker.platform
+                      .pickFiles(allowMultiple: false, type: FileType.audio)
+                      .then(
                     (FilePickerResult? value) async {
                       if (value != null) {
                         await Navigator.push(
