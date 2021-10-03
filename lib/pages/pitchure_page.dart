@@ -21,7 +21,6 @@ import "package:rxdart/rxdart.dart";
 import "package:sliding_up_panel/sliding_up_panel.dart";
 import "package:syncfusion_flutter_charts/charts.dart";
 
-// TODO: 3 remaining functions
 // TODO: Fix flac null error bug
 // TODO: Pitch Graph with start and end points to select region and slider knob to change pitch of that particular region
 // TODO: Save Button to Save music to Storage
@@ -696,12 +695,14 @@ class _PITCHurePageState extends State<PITCHurePage>
                               for (int i = 0; i < _pitches.length; i++) {
                                 _pitches[i][1] = 1 +
                                     _functionAmplitude *
-                                        tan(i / (2 * pi * _functionWavelength));
+                                        tan(
+                                          i / (_functionWavelength * 50),
+                                        );
                               }
                               return 1 +
                                   _functionAmplitude *
                                       tan(
-                                        time / (2 * pi * _functionWavelength),
+                                        time / (_functionWavelength * 50),
                                       );
                             };
                           });
@@ -713,11 +714,52 @@ class _PITCHurePageState extends State<PITCHurePage>
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        _functionButton("Sawtooth", () {}),
+                        _functionButton("Sawtooth", () {
+                          setState(() {
+                            _pitchFunction = (int time) {
+                              for (int i = 0; i < _pitches.length; i++) {
+                                _pitches[i][1] = 1 +
+                                    ((i * (_functionWavelength * 0.05)) %
+                                        _functionAmplitude);
+                              }
+                              return 1 +
+                                  ((time * (_functionWavelength * 0.05)) %
+                                      _functionAmplitude);
+                            };
+                          });
+                        }),
                         const SizedBox(width: 30),
-                        _functionButton("Exponential", () {}),
+                        _functionButton("Exponential", () {
+                          setState(() {
+                            _pitchFunction = (int time) {
+                              for (int i = 0; i < _pitches.length; i++) {
+                                _pitches[i][1] = 1 +
+                                    (_functionAmplitude * 0.1) *
+                                        exp(i / (_functionWavelength * 200));
+                              }
+                              return 1 +
+                                  (_functionAmplitude * 0.1) *
+                                      exp(time / (_functionWavelength * 200));
+                            };
+                          });
+                        }),
                         const SizedBox(width: 30),
-                        _functionButton("Step", () {}),
+                        _functionButton("Step", () {
+                          setState(() {
+                            _pitchFunction = (int time) {
+                              for (int i = 0; i < _pitches.length; i++) {
+                                _pitches[i][1] = 1.0 +
+                                    _functionWavelength *
+                                        ((i * _functionWavelength) /
+                                            (_functionAmplitude * 1000));
+                              }
+                              return 1.0 +
+                                  _functionWavelength *
+                                      ((time * _functionWavelength) /
+                                          (_functionAmplitude * 1000));
+                            };
+                          });
+                        }),
                       ],
                     ),
                   ],
