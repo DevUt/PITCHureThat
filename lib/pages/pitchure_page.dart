@@ -23,7 +23,6 @@ import "package:syncfusion_flutter_charts/charts.dart";
 
 // TODO: 3 remaining functions
 // TODO: Fix flac null error bug
-// TODO: Do not play in background
 // TODO: Pitch Graph with start and end points to select region and slider knob to change pitch of that particular region
 // TODO: Save Button to Save music to Storage
 
@@ -46,7 +45,8 @@ class PITCHurePage extends StatefulWidget {
   State<PITCHurePage> createState() => _PITCHurePageState();
 }
 
-class _PITCHurePageState extends State<PITCHurePage> {
+class _PITCHurePageState extends State<PITCHurePage>
+    with WidgetsBindingObserver {
   late AudioPlayer _player;
   late Stream<DurationState> _durationState;
 
@@ -149,13 +149,23 @@ class _PITCHurePageState extends State<PITCHurePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
     _setupMusic();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state != AppLifecycleState.resumed) {
+      _player.pause();
+    }
   }
 
   @override
   void dispose() {
     Equalizer.release();
     _player.dispose();
+    WidgetsBinding.instance?.removeObserver(this);
     super.dispose();
   }
 
