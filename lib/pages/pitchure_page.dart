@@ -23,7 +23,6 @@ import "package:syncfusion_flutter_charts/charts.dart";
 
 // TODO: 3 remaining functions
 // TODO: Fix flac null error bug
-// TODO: Wavelength and Wave amplitude Slider, Store in State and update live
 // TODO: Do not play in background
 // TODO: Pitch Graph with start and end points to select region and slider knob to change pitch of that particular region
 // TODO: Save Button to Save music to Storage
@@ -73,6 +72,13 @@ class _PITCHurePageState extends State<PITCHurePage> {
   final List<List<double>> _pitches = <List<double>>[
     <double>[0, 1]
   ];
+
+  double _functionAmplitude = 0.4;
+  double _functionWavelength = 1;
+
+  double Function(int time) _pitchFunction = (int time) {
+    return 1;
+  };
 
   Future<void> _setupMusic() async {
     try {
@@ -306,7 +312,8 @@ class _PITCHurePageState extends State<PITCHurePage> {
         final Duration _total = _durationState?.total ?? Duration.zero;
 
         _player.setPitch(
-          (_pitches[_progress.inSeconds][1] + _playerPitch + 23) * 0.0416666667,
+          (_pitchFunction(_progress.inSeconds) + _playerPitch + 23) *
+              0.0416666667,
         );
 
         return Padding(
@@ -490,7 +497,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
                             primary: Colors.white,
                           ),
                           onPressed: () {
-                            int _heightDifference = 235;
+                            int _heightDifference = 234;
                             setState(() {
                               _isEqualizerExpanded
                                   ? _panelMaxHeight -= _heightDifference
@@ -532,7 +539,7 @@ class _PITCHurePageState extends State<PITCHurePage> {
                             primary: Colors.white,
                           ),
                           onPressed: () {
-                            int _heightDifference = 130;
+                            int _heightDifference = 220;
                             setState(() {
                               _isFunctionsExpanded
                                   ? _panelMaxHeight -= _heightDifference
@@ -558,9 +565,14 @@ class _PITCHurePageState extends State<PITCHurePage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: _functionButton("Reset", () {
-                        for (int i = 0; i < _pitches.length; i++) {
-                          _pitches[i][1] = 1;
-                        }
+                        setState(() {
+                          _pitchFunction = (int time) {
+                            for (int i = 0; i < _pitches.length; i++) {
+                              _pitches[i][1] = 1;
+                            }
+                            return 1;
+                          };
+                        });
                       }),
                     ),
                 ],
@@ -573,34 +585,116 @@ class _PITCHurePageState extends State<PITCHurePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
+                        Expanded(
+                          child: Column(
+                            children: <Widget>[
+                              Slider(
+                                thumbColor: Theme.of(context).primaryColor,
+                                activeColor: Theme.of(context).primaryColor,
+                                inactiveColor:
+                                    Theme.of(context).colorScheme.secondary,
+                                label: (_functionAmplitude).round().toString(),
+                                value: _functionAmplitude,
+                                onChanged: (double newFunctionAmplitude) {
+                                  setState(() {
+                                    _functionAmplitude = newFunctionAmplitude;
+                                  });
+                                },
+                              ),
+                              const Text(
+                                "Amplitude",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: <Widget>[
+                              Slider(
+                                thumbColor: Theme.of(context).primaryColor,
+                                activeColor: Theme.of(context).primaryColor,
+                                inactiveColor:
+                                    Theme.of(context).colorScheme.secondary,
+                                label: (_functionWavelength).round().toString(),
+                                value: _functionWavelength,
+                                onChanged: (double newFunctionWavelength) {
+                                  setState(() {
+                                    _functionWavelength = newFunctionWavelength;
+                                  });
+                                },
+                              ),
+                              const Text(
+                                "Wavelength",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
                         _functionButton("Sine", () {
-                          for (int i = 0; i < _pitches.length; i++) {
-                            double _amplitude = 0.4;
-                            double _wavelength = 1;
-                            double _sine =
-                                _amplitude * sin(i / (2 * pi * _wavelength));
-                            _pitches[i][1] = _sine + 1;
-                          }
+                          setState(() {
+                            _pitchFunction = (int time) {
+                              for (int i = 0; i < _pitches.length; i++) {
+                                _pitches[i][1] = 1 +
+                                    _functionAmplitude *
+                                        sin(i / (2 * pi * _functionWavelength));
+                              }
+                              return 1 +
+                                  _functionAmplitude *
+                                      sin(
+                                        time / (2 * pi * _functionWavelength),
+                                      );
+                            };
+                          });
                         }),
                         const SizedBox(width: 30),
                         _functionButton("Cosine", () {
-                          for (int i = 0; i < _pitches.length; i++) {
-                            double _amplitude = 0.4;
-                            double _wavelength = 1;
-                            double _cosine =
-                                _amplitude * cos(i / (2 * pi * _wavelength));
-                            _pitches[i][1] = _cosine + 1;
-                          }
+                          setState(() {
+                            _pitchFunction = (int time) {
+                              for (int i = 0; i < _pitches.length; i++) {
+                                _pitches[i][1] = 1 +
+                                    _functionAmplitude *
+                                        cos(i / (2 * pi * _functionWavelength));
+                              }
+                              return 1 +
+                                  _functionAmplitude *
+                                      cos(
+                                        time / (2 * pi * _functionWavelength),
+                                      );
+                            };
+                          });
                         }),
                         const SizedBox(width: 30),
                         _functionButton("Tangent", () {
-                          for (int i = 0; i < _pitches.length; i++) {
-                            double _amplitude = 0.4;
-                            double _wavelength = 3;
-                            double _tangent =
-                                _amplitude * tan(i / (2 * pi * _wavelength));
-                            _pitches[i][1] = _tangent + 1;
-                          }
+                          setState(() {
+                            _pitchFunction = (int time) {
+                              for (int i = 0; i < _pitches.length; i++) {
+                                _pitches[i][1] = 1 +
+                                    _functionAmplitude *
+                                        tan(i / (2 * pi * _functionWavelength));
+                              }
+                              return 1 +
+                                  _functionAmplitude *
+                                      tan(
+                                        time / (2 * pi * _functionWavelength),
+                                      );
+                            };
+                          });
                         }),
                       ],
                     ),
