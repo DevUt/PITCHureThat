@@ -26,3 +26,10 @@ jobs:
 
       - name: Build Android APK
         run: flutter build apk --release # Build a release APK
+
+      - name: Upload Artifacts # Upload build artifacts to GitHub.
+        uses: actions/upload-artifact@v2
+        with:
+          name: Releases
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
