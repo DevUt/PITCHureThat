@@ -1,0 +1,28 @@
+name: Flutter Build
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+  pull_request:
+    branches:
+      - main # Trigger on pull requests to the main branch
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest # Use a Linux runner for Android builds
+
+    steps:
+      - uses: actions/checkout@v4 # Checkout your repository code
+
+      - uses: subosito/flutter-action@v2 # Setup Flutter
+        with:
+          flutter-version: '2.5.0' # Specify an older Flutter version
+          channel: 'stable' # Or 'beta', 'dev' depending on your needs
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        run: flutter build apk --release # Build a release APK
