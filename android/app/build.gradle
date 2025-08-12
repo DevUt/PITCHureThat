@@ -31,14 +31,6 @@ apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    signingConfigs {
-        release {
-            keyAlias 'pitchurethat'
-            storeFile file('D:\\PITCHureThat.jks')
-            storePassword 'PITCHureThat'
-            keyPassword 'PITCHureThat'
-        }
-    }
     compileSdkVersion 30
 
     compileOptions {
@@ -53,12 +45,10 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
-        signingConfig signingConfigs.release
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
             minifyEnabled true
             multiDexEnabled true
         }
